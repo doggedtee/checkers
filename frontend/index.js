@@ -1,158 +1,74 @@
+const API = 'http://localhost:8000';
+const GAME_ID = 'game1';
+
 const EMPTY = 0;
-const BEIGE = 1;
-const BLACK = 2;
 const BEIGE_KING = 3;
 const BLACK_KING = 4;
 
 let board = [];
+let turn = null;
 let selectedCell = null;
 let validMoves = [];
-let turn = BEIGE;
 let gameOver = false;
 
-function createBoard() {
-  board = Array.from({ length: 8 }, () => Array(8).fill(EMPTY));
-
-  for (let row = 0; row < 3; row++) {
-    for (let col = 0; col < 8; col++) {
-      if ((row + col) % 2 === 1) board[row][col] = BEIGE;
-    }
-  }
-  for (let row = 5; row < 8; row++) {
-    for (let col = 0; col < 8; col++) {
-      if ((row + col) % 2 === 1) board[row][col] = BLACK;
-    }
-  }
+async function newGame() {
+  const res = await fetch(`${API}/game/new?game_id=${GAME_ID}`, { method: 'POST' });
+  const data = await res.json();
+  board = data.board;
+  turn = data.turn;
+  selectedCell = null;
+  validMoves = [];
+  gameOver = false;
+  document.getElementById('winner-banner').textContent = '';
+  render();
 }
 
-function getDirections(value) {
-  if (value === BEIGE_KING || value === BLACK_KING) return [[-1,-1],[-1,1],[1,-1],[1,1]];
-  if (value === BEIGE) return [[1,-1],[1,1]];
-  return [[-1,-1],[-1,1]];
+async function fetchValidMoves(row, col) {
+  const res = await fetch(`${API}/game/${GAME_ID}/valid-moves?row=${row}&col=${col}`);
+  if (!res.ok) return [];
+  const data = await res.json();
+  return data.moves;
 }
 
-function isSameColor(value, target) {
-  const beige = new Set([BEIGE, BEIGE_KING]);
-  const black = new Set([BLACK, BLACK_KING]);
-  if (beige.has(value)) return beige.has(target);
-  return black.has(target);
-}
+async function makeMove(pieceRow, pieceCol, toRow, toCol) {
+  const res = await fetch(`${API}/game/${GAME_ID}/move`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ piece_row: pieceRow, piece_col: pieceCol, to_row: toRow, to_col: toCol })
+  });
+  if (!res.ok) return;
+  const data = await res.json();
+  board = data.board;
+  turn = data.turn;
 
-function inBounds(r, c) {
-  return r >= 0 && r < 8 && c >= 0 && c < 8;
-}
-
-function getMoves(row, col) {
-  const value = board[row][col];
-  const directions = getDirections(value);
-  const moves = [];
-  const captures = [];
-
-  for (const [dr, dc] of directions) {
-    const r = row + dr;
-    const c = col + dc;
-    if (!inBounds(r, c)) continue;
-
-    if (board[r][c] === EMPTY) {
-      moves.push({ toRow: r, toCol: c });
-    } else if (!isSameColor(value, board[r][c])) {
-      const jr = r + dr;
-      const jc = c + dc;
-      if (inBounds(jr, jc) && board[jr][jc] === EMPTY) {
-        captures.push({ toRow: jr, toCol: jc, capRow: r, capCol: c });
-      }
-    }
+  if (data.winner) {
+    gameOver = true;
+    document.getElementById('winner-banner').textContent = `${data.winner} wins!`;
+    document.getElementById('turn-indicator').textContent = '';
   }
 
-  return captures.length > 0 ? captures : moves;
+  selectedCell = null;
+  validMoves = [];
+  render();
 }
 
-function getAllMoves() {
-  const pieces = [];
-  for (let r = 0; r < 8; r++) {
-    for (let c = 0; c < 8; c++) {
-      const v = board[r][c];
-      const isTurn = turn === BEIGE ? (v === BEIGE || v === BEIGE_KING) : (v === BLACK || v === BLACK_KING);
-      if (isTurn) {
-        const moves = getMoves(r, c);
-        if (moves.length > 0) pieces.push({ row: r, col: c, moves });
-      }
-    }
-  }
-
-  const hasCapture = pieces.some(p => p.moves[0].capRow !== undefined);
-  return hasCapture ? pieces.filter(p => p.moves[0].capRow !== undefined) : pieces;
-}
-
-function checkPromotion(row, col) {
-  if (board[row][col] === BEIGE && row === 7) board[row][col] = BEIGE_KING;
-  if (board[row][col] === BLACK && row === 0) board[row][col] = BLACK_KING;
-}
-
-function checkWinner() {
-  const allMoves = getAllMoves();
-  if (allMoves.length === 0) {
-    return turn === BEIGE ? "Black wins!" : "Beige wins!";
-  }
-
-  let beige = false, black = false;
-  for (let r = 0; r < 8; r++) {
-    for (let c = 0; c < 8; c++) {
-      if (board[r][c] === BEIGE || board[r][c] === BEIGE_KING) beige = true;
-      if (board[r][c] === BLACK || board[r][c] === BLACK_KING) black = true;
-    }
-  }
-  if (!beige) return "Black wins!";
-  if (!black) return "Beige wins!";
-  return null;
-}
-
-function onCellClick(row, col) {
+async function onCellClick(row, col) {
   if (gameOver) return;
 
-  const allMoves = getAllMoves();
-  const clickedPiece = allMoves.find(p => p.row === row && p.col === col);
-
-  if (clickedPiece) {
-    selectedCell = { row, col };
-    validMoves = clickedPiece.moves;
-    render();
-    return;
-  }
-
   if (selectedCell) {
-    const move = validMoves.find(m => m.toRow === row && m.toCol === col);
+    const move = validMoves.find(m => m[0] === row && m[1] === col);
     if (move) {
-      board[row][col] = board[selectedCell.row][selectedCell.col];
-      board[selectedCell.row][selectedCell.col] = EMPTY;
-      const wasCapture = move.capRow !== undefined;
-      if (wasCapture) board[move.capRow][move.capCol] = EMPTY;
-      checkPromotion(row, col);
-
-      if (wasCapture) {
-        const nextCaptures = getMoves(row, col).filter(m => m.capRow !== undefined);
-        if (nextCaptures.length > 0) {
-          selectedCell = { row, col };
-          validMoves = nextCaptures;
-          render();
-          return;
-        }
-      }
-
-      selectedCell = null;
-      validMoves = [];
-      turn = turn === BEIGE ? BLACK : BEIGE;
-
-      const winner = checkWinner();
-      if (winner) {
-        gameOver = true;
-        document.getElementById('winner-banner').textContent = winner;
-      }
-
-      render();
+      await makeMove(selectedCell.row, selectedCell.col, row, col);
       return;
     }
+  }
 
+  const moves = await fetchValidMoves(row, col);
+  if (moves.length > 0) {
+    selectedCell = { row, col };
+    validMoves = moves;
+    render();
+  } else {
     selectedCell = null;
     validMoves = [];
     render();
@@ -163,8 +79,9 @@ function render() {
   const boardEl = document.getElementById('board');
   boardEl.innerHTML = '';
 
-  const turnName = turn === BEIGE ? "Beige's Turn" : "Black's Turn";
-  document.getElementById('turn-indicator').textContent = gameOver ? '' : turnName;
+  if (!gameOver) {
+    document.getElementById('turn-indicator').textContent = turn === 1 ? "Beige's Turn" : "Black's Turn";
+  }
 
   for (let row = 0; row < 8; row++) {
     for (let col = 0; col < 8; col++) {
@@ -172,7 +89,7 @@ function render() {
       cell.className = `cell ${(row + col) % 2 === 0 ? 'light' : 'dark'}`;
 
       const isSelected = selectedCell && selectedCell.row === row && selectedCell.col === col;
-      const isValid = validMoves.some(m => m.toRow === row && m.toCol === col);
+      const isValid = validMoves.some(m => m[0] === row && m[1] === col);
 
       if (isSelected) cell.classList.add('selected');
       if (isValid) cell.classList.add('valid-move');
@@ -180,7 +97,7 @@ function render() {
       const value = board[row][col];
       if (value !== EMPTY) {
         const piece = document.createElement('div');
-        const isBeige = value === BEIGE || value === BEIGE_KING;
+        const isBeige = value === 1 || value === BEIGE_KING;
         piece.className = `piece ${isBeige ? 'beige' : 'black'}${value === BEIGE_KING || value === BLACK_KING ? ' king' : ''}`;
         cell.appendChild(piece);
       }
@@ -191,16 +108,6 @@ function render() {
   }
 }
 
-function init() {
-  gameOver = false;
-  turn = BEIGE;
-  selectedCell = null;
-  validMoves = [];
-  document.getElementById('winner-banner').textContent = '';
-  createBoard();
-  render();
-}
+document.getElementById('restart-btn').addEventListener('click', newGame);
 
-document.getElementById('restart-btn').addEventListener('click', init);
-
-init();
+newGame();
