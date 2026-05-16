@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Header
 from pydantic import BaseModel
 from game.game import Game
+from db.supabase import get_google_oauth_url, get_user, save_game, get_game_history
 
 router = APIRouter()
 
@@ -12,6 +13,7 @@ class MoveRequest(BaseModel):
     piece_col: int
     to_row: int
     to_col: int
+    user_id: str = None
 
 
 @router.post("/game/new")
@@ -55,11 +57,41 @@ def make_move(game_id: str, body: MoveRequest):
         raise HTTPException(status_code=400, detail="Invalid move")
 
     game.make_move(piece, move)
+    winner = game.get_winner()
+
+    if winner:
+        save_game(
+            player1_id=body.user_id or game_id,
+            winner=winner,
+            moves=game.move_history,
+        )
+
     return {
         "board": game.board,
         "turn": game.turn,
-        "winner": game.get_winner()
+        "winner": winner
     }
+
+
+@router.get("/user/{user_id}/history")
+def user_history(user_id: str):
+    result = get_game_history(user_id)
+    return {"games": result.data}
+
+
+@router.get("/auth/login")
+def login(redirect_url: str = "http://localhost:5500"):
+    url = get_google_oauth_url(redirect_url)
+    return {"url": url}
+
+
+@router.get("/auth/me")
+def me(authorization: str = Header(...)):
+    token = authorization.replace("Bearer ", "")
+    user = get_user(token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    return {"user": user.user}
 
 
 def _get_game(game_id: str) -> Game:

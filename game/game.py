@@ -10,6 +10,8 @@ class Game:
         self.turn = BEIGE
         self.beige_pieces = []
         self.black_pieces = []
+        self.move_history = []
+        self.pending_piece = None
         self._setup_pieces()
 
     def _setup_pieces(self):
@@ -31,6 +33,7 @@ class Game:
         else:
             to_row, to_col = move
 
+        self.move_history.append({"from": [piece.row, piece.col], "to": [to_row, to_col], "capture": was_capture})
         self.board[piece.row][piece.col] = 0
         piece.row = to_row
         piece.col = to_col
