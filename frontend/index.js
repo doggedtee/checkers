@@ -125,8 +125,19 @@ function onCellClick(row, col) {
     if (move) {
       board[row][col] = board[selectedCell.row][selectedCell.col];
       board[selectedCell.row][selectedCell.col] = EMPTY;
-      if (move.capRow !== undefined) board[move.capRow][move.capCol] = EMPTY;
+      const wasCapture = move.capRow !== undefined;
+      if (wasCapture) board[move.capRow][move.capCol] = EMPTY;
       checkPromotion(row, col);
+
+      if (wasCapture) {
+        const nextCaptures = getMoves(row, col).filter(m => m.capRow !== undefined);
+        if (nextCaptures.length > 0) {
+          selectedCell = { row, col };
+          validMoves = nextCaptures;
+          render();
+          return;
+        }
+      }
 
       selectedCell = null;
       validMoves = [];
