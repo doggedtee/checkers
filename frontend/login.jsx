@@ -47,7 +47,7 @@ function BoardBackdrop() {
   const cells = [];
   for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
     const dark = (r + c) % 2 === 1;
-    cells.push(<rect key={`${r}-${c}`} x={c * 40} y={r * 40} width="40" height="40" fill={dark ? "#252544" : "#1f1f3a"} />);
+    cells.push(<rect key={`${r}-${c}`} x={c * 40} y={r * 40} width="40" height="40" fill={dark ? "#3a261a" : "#5a3e26"} />);
   }
   return (
     <div style={{
@@ -126,7 +126,7 @@ function LoginPage({ supabase }) {
           disabled={loading}
           style={{
             width: "100%", padding: "16px 20px", borderRadius: 14,
-            background: loading ? "#ececf5" : "#ffffff", color: "#1a1a2e",
+            background: loading ? "#ece6d4" : "#f5efdd", color: "#14110d",
             display: "flex", alignItems: "center", justifyContent: "center", gap: 12,
             fontWeight: 600, fontSize: 16, letterSpacing: "-0.005em",
             transition: "transform 120ms ease, background 120ms ease, box-shadow 200ms ease",

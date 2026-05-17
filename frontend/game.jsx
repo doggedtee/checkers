@@ -34,22 +34,22 @@ function Piece({ kind, selected, ghost }) {
   const isPlayer = kind === 1 || kind === 3;
   const isKing = kind === 3 || kind === 4;
   const base = isPlayer
-    ? { fill: "linear-gradient(160deg, #f3e6cb, #c9b487)", ring: "#8a7553", dot: "#7a6442" }
-    : { fill: "linear-gradient(160deg, #c84a52, #7d262d)", ring: "#5a1a20", dot: "#3b1014" };
+    ? { fill: "radial-gradient(circle at 35% 30%, #f7eccd 0%, #d9c290 45%, #9a7a45 100%)", ring: "#6e5526", dot: "#4d3a18", inner: "#a07c44" }
+    : { fill: "radial-gradient(circle at 35% 30%, #8a2c26 0%, #5a1a16 50%, #2a0c0a 100%)", ring: "#1a0807", dot: "#1a0807", inner: "#3a1311" };
   return (
     <div style={{
       width: "78%", aspectRatio: "1 / 1", borderRadius: "50%",
       background: base.fill,
-      boxShadow: `inset 0 -3px 0 ${base.ring}, inset 0 2px 0 rgba(255,255,255,0.15), 0 4px 10px rgba(0,0,0,0.45)${selected ? ", 0 0 0 3px var(--accent), 0 0 24px oklch(0.78 0.11 75 / 0.45)" : ""}`,
+      boxShadow: `inset 0 -4px 0 ${base.ring}, inset 0 2px 1px rgba(255,255,255,0.18), 0 5px 14px rgba(0,0,0,0.55), 0 1px 0 rgba(255,255,255,0.04)${selected ? ", 0 0 0 2px var(--accent), 0 0 28px oklch(0.7 0.1 65 / 0.5)" : ""}`,
       display: "flex", alignItems: "center", justifyContent: "center",
       position: "relative",
       transition: "box-shadow 160ms ease, transform 160ms ease",
       transform: selected ? "translateY(-2px)" : "none",
       opacity: ghost ? 0.4 : 1,
     }}>
-      <div style={{ width: "62%", aspectRatio: "1 / 1", borderRadius: "50%", border: `1px dashed ${base.dot}`, opacity: 0.5 }} />
+      <div style={{ width: "64%", aspectRatio: "1 / 1", borderRadius: "50%", border: `1px solid ${base.dot}`, opacity: 0.35, boxShadow: `inset 0 0 8px ${base.inner}` }} />
       {isKing && (
-        <svg style={{ position: "absolute" }} width="40%" viewBox="0 0 24 24" fill={isPlayer ? "#7a6442" : "#3b1014"}>
+        <svg style={{ position: "absolute", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.3))" }} width="42%" viewBox="0 0 24 24" fill={isPlayer ? "#5a4520" : "#1a0807"}>
           <path d="M3 8l4 4 5-7 5 7 4-4-2 10H5z" />
         </svg>
       )}
@@ -66,7 +66,7 @@ function PlayerCard({ side, name, rating, country, color, active, captured, time
       display: "flex", flexDirection: "column", gap: 14,
       minWidth: 220, position: "relative",
       transition: "border-color 200ms ease, box-shadow 200ms ease",
-      boxShadow: active ? "0 0 0 1px var(--accent), 0 8px 30px -10px oklch(0.78 0.11 75 / 0.35)" : "none",
+      boxShadow: active ? "0 0 0 1px var(--accent), 0 8px 30px -10px oklch(0.7 0.1 65 / 0.4)" : "none",
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <Avatar name={name} size={42} color={color} />
@@ -102,9 +102,9 @@ function PlayerCard({ side, name, rating, country, color, active, captured, time
             <span key={i} style={{
               width: 18, height: 18, borderRadius: "50%",
               background: side === "player"
-                ? "linear-gradient(160deg, #c84a52, #7d262d)"
-                : "linear-gradient(160deg, #f3e6cb, #c9b487)",
-              boxShadow: "inset 0 -1.5px 0 rgba(0,0,0,0.3)",
+                ? "radial-gradient(circle at 35% 30%, #8a2c26, #3a1311)"
+                : "radial-gradient(circle at 35% 30%, #f7eccd, #9a7a45)",
+              boxShadow: "inset 0 -1.5px 0 rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3)",
             }} />
           ))}
           {captured.length === 0 && <span style={{ fontSize: 12, color: "var(--text-dim)" }}>—</span>}
@@ -261,8 +261,8 @@ function GamePage({ user, onExit }) {
         }}>
           <span style={{
             width: 22, height: 22, borderRadius: "50%",
-            background: turn === 1 ? "linear-gradient(160deg, #f3e6cb, #c9b487)" : "linear-gradient(160deg, #c84a52, #7d262d)",
-            boxShadow: "inset 0 -1.5px 0 rgba(0,0,0,0.3)",
+            background: turn === 1 ? "radial-gradient(circle at 35% 30%, #f7eccd, #9a7a45)" : "radial-gradient(circle at 35% 30%, #8a2c26, #3a1311)",
+            boxShadow: "inset 0 -1.5px 0 rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3)",
             transition: "background 240ms ease",
           }} />
           <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
@@ -293,7 +293,7 @@ function GamePage({ user, onExit }) {
             name={user?.user_metadata?.full_name || user?.email || "You"}
             rating=""
             country="You"
-            color="oklch(0.78 0.11 75)"
+            color="oklch(0.7 0.1 65)"
             active={turn === 1}
             captured={Array(captured.oppLost).fill(0)}
             time={fmt(playerTime)}
@@ -312,14 +312,16 @@ function GamePage({ user, onExit }) {
           <RankLabels ranks={ranks} />
           <div style={{
             width: "min(72vh, 560px)", aspectRatio: "1 / 1",
-            background: "var(--bg-elev-2)", padding: 10, borderRadius: 16,
-            border: "1px solid var(--line)",
-            boxShadow: "0 30px 80px -30px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.02) inset",
+            background: "linear-gradient(145deg, #2a1f15, #1a120c)",
+            padding: 14, borderRadius: 8,
+            border: "1px solid #3a2c20",
+            boxShadow: "0 40px 100px -30px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,220,160,0.04) inset, 0 1px 0 rgba(255,220,160,0.08) inset",
           }}>
             <div style={{
               width: "100%", height: "100%",
               display: "grid", gridTemplateColumns: "repeat(8, 1fr)", gridTemplateRows: "repeat(8, 1fr)",
-              borderRadius: 8, overflow: "hidden",
+              borderRadius: 3, overflow: "hidden",
+              boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.5)",
             }}>
               {board.map((row, r) => row.map((cell, c) => {
                 const dark = (r + c) % 2 === 1;
@@ -328,12 +330,15 @@ function GamePage({ user, onExit }) {
                 const isHint = hintFlash && hintFlash[0] === r && hintFlash[1] === c;
                 return (
                   <button key={`${r}-${c}`} onClick={() => clickSquare(r, c)} style={{
-                    background: dark ? "var(--board-dark)" : "var(--board-light)",
-                    position: "relative", padding: 0,
+                    background: dark
+                      ? "linear-gradient(135deg, #5a3820 0%, #3e2614 100%)"
+                      : "linear-gradient(135deg, #c69968 0%, #a47b48 100%)",
+                    position: "relative", padding: 0, border: "none",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     cursor: dark ? "pointer" : "default",
                     outline: isHint ? "2px solid var(--accent)" : "none",
                     outlineOffset: -2,
+                    boxShadow: dark ? "inset 0 0 12px rgba(0,0,0,0.35)" : "inset 0 0 8px rgba(255,220,160,0.08)",
                   }}>
                     {/* move/cap indicator */}
                     {moveHere && (
@@ -346,7 +351,7 @@ function GamePage({ user, onExit }) {
                           <span style={{
                             width: "78%", aspectRatio: "1 / 1", borderRadius: "50%",
                             border: "3px solid var(--accent)",
-                            boxShadow: "0 0 18px oklch(0.78 0.11 75 / 0.5)",
+                            boxShadow: "0 0 18px oklch(0.7 0.1 65 / 0.55)",
                           }} />
                         ) : (
                           <span style={{
@@ -451,10 +456,10 @@ function GamePage({ user, onExit }) {
             boxShadow: "0 40px 80px -20px rgba(0,0,0,0.7)",
           }}>
             <div style={{ fontSize: 48, marginBottom: 12 }}>
-              {winner === "BEIGE" ? "🏆" : "💀"}
+              {winner === "BEIGE" ? "♛" : "♚"}
             </div>
             <h2 style={{ margin: "0 0 8px", fontSize: 26, fontWeight: 800, letterSpacing: "-0.02em" }}>
-              {winner === "BEIGE" ? "Beige Wins!" : "Black Wins!"}
+              {winner === "BEIGE" ? "Ivory Wins" : "Crimson Wins"}
             </h2>
             <p style={{ margin: "0 0 28px", color: "var(--text-mute)", fontSize: 14 }}>
               Game over
@@ -472,7 +477,7 @@ function GamePage({ user, onExit }) {
                 setOppTime(612);
               }} style={{
                 padding: "12px 24px", borderRadius: 12,
-                background: "var(--accent)", color: "#1a1a2e",
+                background: "var(--accent)", color: "#14110d",
                 fontWeight: 700, fontSize: 14,
               }}>Play again</button>
               <button onClick={onExit} style={{
@@ -505,7 +510,7 @@ function RankLabels({ ranks }) {
 
 function ActionButton({ children, icon, onClick, kind }) {
   const styles = {
-    primary: { bg: "var(--accent)", color: "#1a1a2e", border: "transparent" },
+    primary: { bg: "var(--accent)", color: "#14110d", border: "transparent" },
     ghost: { bg: "var(--bg-elev-1)", color: "var(--text)", border: "var(--line-soft)" },
     danger: { bg: "transparent", color: "oklch(0.78 0.14 25)", border: "oklch(0.78 0.14 25 / 0.4)" },
   }[kind];

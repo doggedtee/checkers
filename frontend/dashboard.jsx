@@ -6,9 +6,9 @@ function Avatar({ name, size = 40, color = "var(--accent)", ring = false }) {
   return (
     <div style={{
       width: size, height: size, borderRadius: "50%",
-      background: `linear-gradient(135deg, ${color}, oklch(0.65 0.13 60))`,
+      background: `linear-gradient(135deg, ${color}, oklch(0.55 0.1 50))`,
       display: "flex", alignItems: "center", justifyContent: "center",
-      color: "#1a1a2e", fontWeight: 700, fontSize: size * 0.38,
+      color: "#14110d", fontWeight: 700, fontSize: size * 0.38,
       flexShrink: 0,
       boxShadow: ring ? "0 0 0 2px var(--bg), 0 0 0 4px var(--accent)" : "none",
     }}>{initials}</div>
@@ -124,7 +124,7 @@ function DashboardPage({ user, onPlay, onLogout }) {
 
         <div style={{ marginTop: "auto", padding: 14, background: "var(--bg-elev-2)", borderRadius: 12, border: "1px solid var(--line-soft)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <Avatar name={displayName} size={36} color="oklch(0.78 0.11 75)" />
+            <Avatar name={displayName} size={36} color="oklch(0.7 0.1 65)" />
             <div style={{ minWidth: 0, flex: 1 }}>
               <div style={{ fontSize: 13.5, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{displayName}</div>
               <div style={{ fontSize: 11.5, color: "var(--text-dim)", fontFamily: "var(--mono)" }}>{user?.email || ""}</div>
@@ -141,7 +141,7 @@ function DashboardPage({ user, onPlay, onLogout }) {
         {/* Header */}
         <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 32 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <Avatar name={displayName} size={56} color="oklch(0.78 0.11 75)" ring />
+            <Avatar name={displayName} size={56} color="oklch(0.7 0.1 65)" ring />
             <div>
               <div style={{ fontSize: 13, color: "var(--text-mute)", marginBottom: 4 }}>Welcome back</div>
               <h1 style={{ margin: 0, fontSize: 28, fontWeight: 700, letterSpacing: "-0.02em" }}>{displayName}</h1>
@@ -212,7 +212,7 @@ function DashboardPage({ user, onPlay, onLogout }) {
             <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 0 18px", borderBottom: "1px solid var(--line-soft)" }}>
               <div style={{
                 width: 52, height: 52, borderRadius: 12,
-                background: "linear-gradient(135deg, oklch(0.78 0.11 75), oklch(0.62 0.13 50))",
+                background: "linear-gradient(135deg, oklch(0.7 0.1 65), oklch(0.62 0.13 50))",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 color: "#1a1a2e",
               }}>{I.trophy}</div>
@@ -266,9 +266,9 @@ function Stat({ label, value, accent }) {
 function PlayCard({ title, sub, cta, icon, tone, onClick }) {
   const [hover, setHover] = useStateDash(false);
   const accentBg = tone === "warm"
-    ? "radial-gradient(120% 80% at 0% 0%, oklch(0.78 0.11 75 / 0.18), transparent 60%)"
+    ? "radial-gradient(120% 80% at 0% 0%, oklch(0.7 0.1 65 / 0.18), transparent 60%)"
     : "radial-gradient(120% 80% at 100% 0%, oklch(0.7 0.1 230 / 0.18), transparent 60%)";
-  const iconBg = tone === "warm" ? "oklch(0.78 0.11 75 / 0.18)" : "oklch(0.7 0.1 230 / 0.18)";
+  const iconBg = tone === "warm" ? "oklch(0.7 0.1 65 / 0.18)" : "oklch(0.7 0.1 230 / 0.18)";
   const iconFg = tone === "warm" ? "var(--accent)" : "oklch(0.82 0.1 230)";
   return (
     <button
@@ -294,7 +294,7 @@ function PlayCard({ title, sub, cta, icon, tone, onClick }) {
         <div style={{
           width: 36, height: 36, borderRadius: 10,
           background: hover ? "var(--accent)" : "var(--bg-elev-3)",
-          color: hover ? "#1a1a2e" : "var(--text-mute)",
+          color: hover ? "#14110d" : "var(--text-mute)",
           display: "flex", alignItems: "center", justifyContent: "center",
           transition: "all 200ms ease",
         }}>
