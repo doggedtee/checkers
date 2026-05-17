@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from pathlib import Path
 from game.game import Game
 from game.bot import choose_move
-from db.supabase import get_google_oauth_url, get_user, save_game, get_game_history, get_all_games_for_leaderboard
+from db.supabase import get_google_oauth_url, get_user, save_game, get_game_history, get_all_games_for_leaderboard, save_active_game, load_active_game
 
 app = FastAPI()
 router = APIRouter()
@@ -25,6 +25,10 @@ class MoveRequest(BaseModel):
 @router.post("/game/new")
 def new_game(game_id: str):
     games[game_id] = Game()
+    try:
+        save_active_game(game_id, games[game_id])
+    except Exception:
+        pass
     return {"game_id": game_id, "board": games[game_id].board, "turn": games[game_id].turn}
 
 
@@ -73,6 +77,10 @@ def make_move(game_id: str, body: MoveRequest):
             region=body.region,
         )
 
+    try:
+        save_active_game(game_id, game)
+    except Exception:
+        pass
     return {
         "board": game.board,
         "turn": game.turn,
@@ -102,6 +110,10 @@ def end_game(game_id: str, body: EndRequest):
 def undo_move(game_id: str, steps: int = 1):
     game = _get_game(game_id)
     ok = game.undo(steps=steps)
+    try:
+        save_active_game(game_id, game)
+    except Exception:
+        pass
     return {
         "ok": ok,
         "board": game.board,
@@ -139,6 +151,10 @@ def bot_move(game_id: str, difficulty: int = 800, user_id: str = None, region: s
             region=region,
         )
 
+    try:
+        save_active_game(game_id, game)
+    except Exception:
+        pass
     return {
         "board": game.board,
         "turn": game.turn,
@@ -200,9 +216,20 @@ def me(authorization: str = Header(...)):
 
 
 def _get_game(game_id: str) -> Game:
-    if game_id not in games:
-        raise HTTPException(status_code=404, detail="Game not found")
-    return games[game_id]
+    if game_id in games:
+        return games[game_id]
+    row = load_active_game(game_id)
+    if row:
+        game = Game.from_state(
+            board=row["board"],
+            turn=row["turn"],
+            move_history=row.get("move_history") or [],
+            pending_row=row.get("pending_row"),
+            pending_col=row.get("pending_col"),
+        )
+        games[game_id] = game
+        return game
+    raise HTTPException(status_code=404, detail="Game not found")
 
 
 frontend_dir = Path(__file__).parent.parent / "frontend"

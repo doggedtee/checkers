@@ -36,5 +36,3 @@ def display_board(board):
     for row in range(ROWS):
         print(str(row) + " " + " ".join(symbols[cell] for cell in board[row]))
 
-b = create_board()
-print(b)

@@ -1,5 +1,5 @@
 import copy
-from game.board import create_board, BEIGE, BLACK
+from game.board import create_board, BEIGE, BLACK, BEIGE_KING, BLACK_KING
 from game.piece import Piece
 from game.moves import get_moves
 from game.rules import check_promotion, check_winner
@@ -15,6 +15,37 @@ class Game:
         self.pending_piece = None
         self._undo_stack = []
         self._setup_pieces()
+
+    @classmethod
+    def from_state(cls, board, turn, move_history=None, pending_row=None, pending_col=None):
+        g = cls.__new__(cls)
+        g.board = [list(row) for row in board]
+        g.turn = turn
+        g.move_history = list(move_history or [])
+        g._undo_stack = []
+        g.pending_piece = None
+        g.beige_pieces = []
+        g.black_pieces = []
+        for r in range(8):
+            for c in range(8):
+                v = g.board[r][c]
+                if v in (BEIGE, BEIGE_KING):
+                    p = Piece(r, c, v)
+                    if v == BEIGE_KING:
+                        p.is_king = True
+                    g.beige_pieces.append(p)
+                elif v in (BLACK, BLACK_KING):
+                    p = Piece(r, c, v)
+                    if v == BLACK_KING:
+                        p.is_king = True
+                    g.black_pieces.append(p)
+        if pending_row is not None and pending_col is not None:
+            g.pending_piece = next(
+                (p for p in g.beige_pieces + g.black_pieces
+                 if p.row == pending_row and p.col == pending_col),
+                None,
+            )
+        return g
 
     def _snapshot(self):
         return {

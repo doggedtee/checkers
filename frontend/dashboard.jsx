@@ -417,7 +417,7 @@ function DashboardPage({ user, profile, onProfileUpdate, onPlay, onLogout }) {
     if (!client) return;
     let cancelled = false;
     client.from("profiles")
-      .select("id, display_name, avatar_url, region, wins, losses")
+      .select("id, display_name, avatar_url, region")
       .ilike("display_name", `%${q}%`)
       .neq("id", user?.id)
       .limit(6)
@@ -598,7 +598,7 @@ function DashboardPage({ user, profile, onProfileUpdate, onPlay, onLogout }) {
                     <Avatar name={p.display_name} photoUrl={p.avatar_url} size={28} color="oklch(0.7 0.12 200)" />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{p.display_name}</div>
-                      <div style={{ fontSize: 11, color: "var(--text-dim)", fontFamily: "var(--mono)" }}>{p.wins}W · {p.losses}L{p.region ? ` · ${p.region}` : ""}</div>
+                      <div style={{ fontSize: 11, color: "var(--text-dim)", fontFamily: "var(--mono)" }}>{p.region || "No region"}</div>
                     </div>
                   </button>
                 ))}

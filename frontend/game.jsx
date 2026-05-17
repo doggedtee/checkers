@@ -2,7 +2,6 @@
 const { useState: useStateGame, useMemo: useMemoGame, useEffect: useEffectGame, useRef: useRefGame } = React;
 
 const API = window.API_BASE || window.location.origin;
-const DEFAULT_GAME_ID = 'game1';
 
 async function apiNewGame(gameId = DEFAULT_GAME_ID) {
   const res = await fetch(`${API}/game/new?game_id=${gameId}`, { method: 'POST' });
@@ -341,19 +340,6 @@ function GamePage({ user, profile, mode = "friend", difficulty = 800, roomCode =
     }
     return { playerLost: 12 - pn, oppLost: 12 - on };
   }, [board]);
-
-  async function anyCapureExists() {
-    const beige = [1, 3], black = [2, 4];
-    const currentColor = turn === 1 ? beige : black;
-    for (let r = 0; r < 8; r++) {
-      for (let c = 0; c < 8; c++) {
-        if (!currentColor.includes(board[r][c])) continue;
-        const ms = await apiGetValidMoves(r, c, gameId);
-        if (ms.some(m => m.capture)) return true;
-      }
-    }
-    return false;
-  }
 
   function broadcastMove(data) {
     const ch = mpChannelRef.current;
