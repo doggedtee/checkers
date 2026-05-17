@@ -237,15 +237,13 @@ function GamePage({ user, profile, mode = "friend", difficulty = 800, roomCode =
       config: { presence: { key: user?.id || `${role}-${roomCode}` } },
     });
     mpChannelRef.current = channel;
-    channel.on("broadcast", { event: "move" }, () => {
-      apiGetBoard(gameId).then(data => {
-        if (!data) return;
-        setBoard(data.board);
-        setTurn(data.turn);
-        if (data.winner) setWinner(data.winner);
-        setSelected(null);
-        setMoves([]);
-      });
+    channel.on("broadcast", { event: "move" }, ({ payload }) => {
+      if (!payload?.board) return;
+      setBoard(payload.board);
+      setTurn(payload.turn);
+      if (payload.winner) setWinner(payload.winner);
+      setSelected(null);
+      setMoves([]);
     });
     channel.on("broadcast", { event: "end" }, ({ payload }) => {
       setWinner(payload?.winner || "DRAW");
@@ -357,10 +355,30 @@ function GamePage({ user, profile, mode = "friend", difficulty = 800, roomCode =
     return false;
   }
 
-  function broadcastMove() {
+  function broadcastMove(data) {
     const ch = mpChannelRef.current;
     if (!ch) return;
-    try { ch.send({ type: "broadcast", event: "move", payload: { at: Date.now() } }); } catch (_) {}
+    try { ch.send({ type: "broadcast", event: "move", payload: { board: data.board, turn: data.turn, winner: data.winner || null } }); } catch (_) {}
+  }
+
+  function clientAnyCapture(b, forTurn) {
+    const mine = forTurn === 1 ? [1, 3] : [2, 4];
+    const enemy = forTurn === 1 ? [2, 4] : [1, 3];
+    for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
+      if (!mine.includes(b[r][c])) continue;
+      const p = b[r][c];
+      const isKing = p === 3 || p === 4;
+      const isBeige = p === 1 || p === 3;
+      const dirs = [];
+      if (isBeige || isKing) dirs.push([-1,-1],[-1,1]);
+      if (!isBeige || isKing) dirs.push([1,-1],[1,1]);
+      for (const [dr, dc] of dirs) {
+        const nr = r+dr, nc = c+dc, jr = r+2*dr, jc = c+2*dc;
+        if (jr<0||jr>7||jc<0||jc>7) continue;
+        if (enemy.includes(b[nr]?.[nc]) && b[jr]?.[jc] === 0) return true;
+      }
+    }
+    return false;
   }
 
   async function clickSquare(r, c) {
@@ -397,7 +415,7 @@ function GamePage({ user, profile, mode = "friend", difficulty = 800, roomCode =
           } else {
             setSelected(null);
             setMoves([]);
-            if (isMpMode) broadcastMove();
+            if (isMpMode) broadcastMove(data);
           }
         }
         return;
@@ -411,7 +429,7 @@ function GamePage({ user, profile, mode = "friend", difficulty = 800, roomCode =
       return;
     }
 
-    const captureRequired = await anyCapureExists();
+    const captureRequired = clientAnyCapture(board, turn);
     if (captureRequired && !validMoves.some(m => m.capture)) {
       setSelected(null);
       setMoves([]);
