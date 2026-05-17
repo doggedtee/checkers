@@ -40,10 +40,7 @@ function App() {
         if (_event === "SIGNED_IN" || _event === "INITIAL_SESSION") {
           loadProfile(session.user);
         }
-        if (_event === "SIGNED_IN") {
-          const hasProfile = !!session.user.user_metadata?.display_name;
-          setPage(hasProfile ? "dashboard" : "profile-setup");
-        } else if (_event === "INITIAL_SESSION") {
+        if (_event === "SIGNED_IN" || _event === "INITIAL_SESSION") {
           setPage("dashboard");
         }
       } else if (_event === "SIGNED_OUT") {
@@ -79,11 +76,6 @@ function App() {
   );
 
   if (page === "login") return <LoginPage supabase={supabase} />;
-  if (page === "profile-setup") return <ProfileSetupPage user={user} supabase={supabase} onComplete={(fresh, profileData) => {
-    if (fresh) setUser(fresh);
-    if (profileData) setProfile(profileData);
-    setPage("dashboard");
-  }} />;
   if (page === "dashboard") return <DashboardPage user={user} profile={profile} onProfileUpdate={setProfile} onPlay={(cfg) => { setGameConfig(cfg || { mode: "friend" }); setPage("game"); }} onLogout={logout} />;
   if (page === "game") return <GamePage user={user} profile={profile} mode={gameConfig.mode} difficulty={gameConfig.difficulty} roomCode={gameConfig.roomCode} role={gameConfig.role}
     onReview={(data) => { setReviewData(data); setPage("review"); }}
