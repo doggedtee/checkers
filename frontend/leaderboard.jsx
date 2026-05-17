@@ -340,7 +340,7 @@ function LeaderboardView({ user }) {
   }
 
   useEffectLb(() => {
-    fetch("http://localhost:8000/leaderboard")
+    fetch("${window.API_BASE}/leaderboard")
       .then(res => res.json())
       .then(data => {
         const mapped = mapEntries(data.players || []);
@@ -358,7 +358,7 @@ function LeaderboardView({ user }) {
   useEffectLb(() => {
     if (tab !== "Regional" || !userRegion) return;
     setRegionPlayers(null);
-    fetch(`http://localhost:8000/leaderboard?region=${encodeURIComponent(userRegion)}`)
+    fetch(`${window.API_BASE}/leaderboard?region=${encodeURIComponent(userRegion)}`)
       .then(res => res.json())
       .then(data => {
         const mapped = mapEntries(data.players || []);

@@ -429,7 +429,7 @@ function DashboardPage({ user, profile, onProfileUpdate, onPlay, onLogout }) {
 
   useEffectDash(() => {
     if (!user?.id) return;
-    fetch(`http://localhost:8000/user/${user.id}/history`)
+    fetch(`${window.API_BASE}/user/${user.id}/history`)
       .then(res => res.json())
       .then(data => {
         const games = data.games || [];
@@ -829,7 +829,7 @@ function MultiplayerModal({ user, onClose, onStart }) {
     setStatus("waiting");
     setErrorMsg("");
     try {
-      await fetch(`http://localhost:8000/game/new?game_id=${code}`, { method: "POST" });
+      await fetch(`${window.API_BASE}/game/new?game_id=${code}`, { method: "POST" });
     } catch (e) {
       setStatus("error");
       setErrorMsg("Could not reach server.");
@@ -866,7 +866,7 @@ function MultiplayerModal({ user, onClose, onStart }) {
     setErrorMsg("");
     // Verify the room exists on the backend
     try {
-      const res = await fetch(`http://localhost:8000/game/${c}/board`);
+      const res = await fetch(`${window.API_BASE}/game/${c}/board`);
       if (!res.ok) {
         setStatus("idle");
         setErrorMsg("Room not found.");

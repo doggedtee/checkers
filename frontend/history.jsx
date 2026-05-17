@@ -225,7 +225,7 @@ function HistoryView({ user }) {
       setMatches(MOCK_MATCHES);
       return;
     }
-    fetch(`http://localhost:8000/user/${user.id}/history`)
+    fetch(`${window.API_BASE}/user/${user.id}/history`)
       .then(res => res.json())
       .then(data => {
         const games = data.games || [];

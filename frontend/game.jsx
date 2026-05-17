@@ -1,7 +1,7 @@
 // Game page — interactive checkers board
 const { useState: useStateGame, useMemo: useMemoGame, useEffect: useEffectGame, useRef: useRefGame } = React;
 
-const API = 'http://localhost:8000';
+const API = window.API_BASE || window.location.origin;
 const DEFAULT_GAME_ID = 'game1';
 
 async function apiNewGame(gameId = DEFAULT_GAME_ID) {
@@ -178,7 +178,9 @@ const BOARD_THEMES_GAME = {
 function GamePage({ user, profile, mode = "friend", difficulty = 800, roomCode = null, role = null, onExit, onReview }) {
   const isBotMode = mode === "bot";
   const isMpMode = mode === "multiplayer";
-  const gameId = isMpMode && roomCode ? roomCode : DEFAULT_GAME_ID;
+  const [gameId] = useStateGame(() =>
+    isMpMode && roomCode ? roomCode : `game_${(user?.id || 'anon').replace(/-/g, '').slice(0, 12)}_${Date.now()}`
+  );
   const myColor = isMpMode ? (role === "host" ? 1 : 2) : null; // 1=BEIGE, 2=BLACK
   const mpChannelRef = useRefGame(null);
   const [settings, setSettings] = useStateGame(() =>
