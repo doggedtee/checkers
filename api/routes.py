@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Header, FastAPI
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+from pathlib import Path
 from game.game import Game
 from game.bot import choose_move
 from db.supabase import get_google_oauth_url, get_user, save_game, get_game_history, get_all_games_for_leaderboard
@@ -204,4 +205,5 @@ def _get_game(game_id: str) -> Game:
 
 
 app.include_router(router)
-app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
+frontend_dir = Path(__file__).parent.parent / "frontend"
+app.mount("/", StaticFiles(directory=str(frontend_dir), html=True), name="frontend")
