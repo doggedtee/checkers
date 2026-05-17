@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Header, FastAPI
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from pathlib import Path
 from game.game import Game
@@ -204,6 +205,11 @@ def _get_game(game_id: str) -> Game:
     return games[game_id]
 
 
-app.include_router(router)
 frontend_dir = Path(__file__).parent.parent / "frontend"
-app.mount("/", StaticFiles(directory=str(frontend_dir), html=True), name="frontend")
+
+@app.get("/")
+def serve_root():
+    return FileResponse(frontend_dir / "Checkers.html")
+
+app.include_router(router)
+app.mount("/", StaticFiles(directory=str(frontend_dir)), name="frontend")
