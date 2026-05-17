@@ -1,3 +1,4 @@
+import copy
 from game.board import create_board, BEIGE, BLACK
 from game.piece import Piece
 from game.moves import get_moves
@@ -12,7 +13,33 @@ class Game:
         self.black_pieces = []
         self.move_history = []
         self.pending_piece = None
+        self._undo_stack = []
         self._setup_pieces()
+
+    def _snapshot(self):
+        return {
+            "board": [row[:] for row in self.board],
+            "turn": self.turn,
+            "beige_pieces": copy.deepcopy(self.beige_pieces),
+            "black_pieces": copy.deepcopy(self.black_pieces),
+            "move_history": list(self.move_history),
+            "pending_piece": copy.deepcopy(self.pending_piece),
+        }
+
+    def _restore(self, snap):
+        self.board = [row[:] for row in snap["board"]]
+        self.turn = snap["turn"]
+        self.beige_pieces = copy.deepcopy(snap["beige_pieces"])
+        self.black_pieces = copy.deepcopy(snap["black_pieces"])
+        self.move_history = list(snap["move_history"])
+        self.pending_piece = copy.deepcopy(snap["pending_piece"])
+
+    def undo(self, steps=1):
+        for _ in range(steps):
+            if not self._undo_stack:
+                return False
+            self._restore(self._undo_stack.pop())
+        return True
 
     def _setup_pieces(self):
         for row in range(8):
@@ -26,6 +53,9 @@ class Game:
         return get_moves(piece, self.board)
 
     def make_move(self, piece, move):
+        # Only snapshot at the start of a fresh turn (not during multi-capture chains)
+        if not self.pending_piece:
+            self._undo_stack.append(self._snapshot())
         was_capture = len(move) == 4
         if was_capture:
             to_row, to_col, cap_row, cap_col = move

@@ -2,32 +2,14 @@
 const { useState } = React;
 
 function Logo({ size = 56 }) {
-  // Stylized checkers crown: two stacked discs with a king crown notch
-  const s = size;
   return (
-    <svg width={s} height={s} viewBox="0 0 64 64" fill="none" style={{ display: "block" }}>
-      <defs>
-        <linearGradient id="lgDiscA" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#f1e3c6" />
-          <stop offset="1" stopColor="#c9b388" />
-        </linearGradient>
-        <linearGradient id="lgDiscB" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#c84a52" />
-          <stop offset="1" stopColor="#7d262d" />
-        </linearGradient>
-      </defs>
-      {/* bottom disc */}
-      <ellipse cx="32" cy="44" rx="22" ry="7" fill="#0e0e1c" opacity="0.45" />
-      <ellipse cx="32" cy="40" rx="22" ry="8" fill="url(#lgDiscB)" />
-      <ellipse cx="32" cy="37" rx="22" ry="7" fill="#b8434a" />
-      <ellipse cx="32" cy="37" rx="18" ry="5.5" fill="none" stroke="#7d262d" strokeWidth="1" opacity="0.6" />
-      {/* top disc (king) */}
-      <ellipse cx="32" cy="26" rx="20" ry="6.5" fill="#7a6a4a" />
-      <ellipse cx="32" cy="23" rx="20" ry="6.5" fill="url(#lgDiscA)" />
-      <ellipse cx="32" cy="23" rx="16" ry="4.5" fill="none" stroke="#a88e62" strokeWidth="1" opacity="0.7" />
-      {/* crown notch */}
-      <path d="M22 22 L26 16 L30 21 L34 15 L38 21 L42 16 L46 22 Z" fill="#d4a574" opacity="0.9" />
-    </svg>
+    <div style={{
+      width: size, height: size, borderRadius: "50%",
+      background: "radial-gradient(circle at 35% 30%, oklch(0.75 0.1 60), oklch(0.45 0.08 40))",
+      boxShadow: "inset 0 -2px 4px rgba(0,0,0,0.4), 0 0 0 1px oklch(0.5 0.08 50)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      fontSize: size * 0.5, lineHeight: 1, flexShrink: 0,
+    }}>🥏</div>
   );
 }
 
@@ -78,7 +60,7 @@ function LoginPage({ supabase }) {
     setError(null);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.href }
+      options: { redirectTo: window.location.origin + window.location.pathname }
     });
     if (error) {
       setError("Failed to sign in. Try again.");
@@ -108,7 +90,7 @@ function LoginPage({ supabase }) {
         <div style={{ display: "flex", justifyContent: "center", marginBottom: 28 }}>
           <Logo size={64} />
         </div>
-        <h1 style={{
+        <h1 className="r-login-title" style={{
           fontSize: 84, fontWeight: 800, letterSpacing: "-0.04em",
           margin: "0 0 14px", lineHeight: 1,
         }}>

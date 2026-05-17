@@ -40,6 +40,211 @@
   /* page transitions */
   .page { animation: fade 280ms ease both; }
   @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  /* ─────────────────────────────────────────────
+     RESPONSIVE — phone / tablet / laptop
+     Inline styles win, so all overrides use !important.
+     Breakpoints:
+       Phone:  ≤ 640px
+       Tablet: 641–1024px
+       Laptop: ≥ 1025px (no overrides; use baseline inline styles)
+     ───────────────────────────────────────────── */
+
+  /* ====== TABLET (641 – 1024px) ====== */
+  @media (max-width: 1024px) {
+    /* Dashboard: shrink sidebar */
+    .r-dash { grid-template-columns: 200px 1fr !important; }
+    .r-dash-main { padding: 24px 22px 48px !important; }
+
+    /* Play cards: 2 col */
+    .r-play-cards { grid-template-columns: 1fr 1fr !important; }
+    .r-play-cards > div:nth-child(3) { grid-column: span 2; }
+
+    /* Recent + Stats: stack */
+    .r-recent-stats { grid-template-columns: 1fr !important; }
+
+    /* Header search */
+    .r-dash-header > div:last-child > div { min-width: 200px !important; }
+
+    /* Settings: stack sub-nav above content */
+    .r-settings-grid { grid-template-columns: 1fr !important; }
+    .r-settings-nav { position: relative !important; top: auto !important; }
+    .r-settings-nav nav { flex-direction: row !important; overflow-x: auto !important; flex-wrap: wrap; }
+    .r-settings-nav nav > button { flex: 1 1 auto; min-width: 0; }
+    .r-settings-nav > div:first-child { display: none !important; } /* hide CATEGORIES label */
+    .r-theme-grid { grid-template-columns: repeat(2, 1fr) !important; }
+
+    /* History analytics: 3 → 2+1 */
+    .r-analytics { grid-template-columns: 1fr 1fr !important; }
+    .r-analytics > div:nth-child(3) { grid-column: span 2; }
+
+    /* Game: shrink board */
+    .r-board { width: min(60vh, 88vw, 520px) !important; }
+    .r-files, .r-ranks { width: min(60vh, 88vw, 520px) !important; height: min(60vh, 88vw, 520px) !important; }
+    .r-files { height: auto !important; }
+    .r-ranks { width: auto !important; }
+    .r-game-body { padding: 20px 22px 16px !important; gap: 18px !important; }
+
+    /* Game review split */
+    .r-review-split { grid-template-columns: 1fr !important; height: auto !important; min-height: 0 !important; }
+  }
+
+  /* ====== PHONE (≤ 640px) ====== */
+  @media (max-width: 640px) {
+    /* Dashboard layout: stack sidebar above main */
+    .r-dash { grid-template-columns: 1fr !important; }
+    .r-dash-sidebar {
+      position: sticky !important; top: 0 !important;
+      height: auto !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      gap: 10px !important;
+      padding: 10px 12px !important;
+      border-right: none !important;
+      border-bottom: 1px solid var(--line-soft) !important;
+      background: var(--bg-elev-1) !important;
+      z-index: 5 !important;
+      overflow-x: auto;
+    }
+    .r-sidebar-brand { flex-shrink: 0 !important; padding: 0 !important; }
+    .r-sidebar-brand span { font-size: 15px !important; }
+    .r-sidebar-nav {
+      flex-direction: row !important; gap: 2px !important;
+      flex: 1 1 auto; min-width: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .r-sidebar-nav::-webkit-scrollbar { display: none; }
+    .r-sidebar-nav > div:first-child { display: none !important; } /* hide MENU label */
+    .r-sidebar-nav > button { padding: 8px 12px !important; font-size: 13px !important; flex-shrink: 0; }
+    .r-sidebar-user { display: none !important; } /* logout still available in Settings */
+
+    .r-dash-main { padding: 18px 14px 32px !important; }
+
+    /* Header (welcome + search) */
+    .r-dash-header { flex-direction: column !important; align-items: stretch !important; gap: 14px !important; }
+    .r-dash-header > div:last-child > div { min-width: 0 !important; width: 100% !important; }
+    .r-dash-header h1 { font-size: 22px !important; }
+
+    /* Play cards: 1 col */
+    .r-play-cards { grid-template-columns: 1fr !important; gap: 12px !important; }
+    .r-play-cards > div:nth-child(3) { grid-column: auto; }
+
+    /* Recent + Stats stacked */
+    .r-recent-stats { grid-template-columns: 1fr !important; gap: 12px !important; }
+    .r-recent-stats section { padding: 16px !important; }
+
+    /* History analytics: single col */
+    .r-analytics { grid-template-columns: 1fr !important; }
+    .r-analytics > div:nth-child(3) { grid-column: auto; }
+
+    /* History match row: stack pieces */
+    .r-match-row {
+      grid-template-columns: auto 1fr auto !important;
+      grid-template-areas: "ava info pill" "stats stats stats" "btn btn btn" !important;
+      gap: 8px 12px !important;
+      padding: 12px 14px !important;
+    }
+    .r-match-row > :nth-child(1) { grid-area: ava; }
+    .r-match-row > :nth-child(2) { grid-area: info; min-width: 0; }
+    .r-match-row > :nth-child(3) { grid-area: pill; justify-self: end; }
+    .r-match-row > :nth-child(4) { grid-area: stats; gap: 14px !important; flex-wrap: wrap; }
+    .r-match-row > :nth-child(5) { grid-area: btn; justify-self: stretch; }
+    .r-match-row > :nth-child(5) > button { width: 100%; justify-content: center; }
+    .r-match-head { display: none !important; } /* table head doesn't make sense once stacked */
+    .r-match-row + .r-match-row { border-top: 1px solid var(--line-soft); }
+
+    /* Settings */
+    .r-settings-grid { grid-template-columns: 1fr !important; gap: 14px !important; }
+    .r-settings-nav { position: relative !important; top: auto !important; padding: 6px !important; }
+    .r-settings-nav nav { flex-direction: row !important; }
+    .r-theme-grid { grid-template-columns: 1fr !important; }
+    .r-profile-row { flex-direction: column !important; align-items: stretch !important; gap: 18px !important; }
+    .r-profile-row > div:first-child { align-self: center; }
+    .r-profile-row > div:nth-child(2) { width: 100%; }
+
+    /* Leaderboard: hide tier + win-rate columns, condense to rank|player|wins|score */
+    .r-standings-head,
+    .r-standings-row {
+      grid-template-columns: 36px minmax(0,1fr) 52px 64px !important;
+      gap: 10px !important;
+      padding: 11px 12px !important;
+    }
+    .r-standings-head > :nth-child(3),
+    .r-standings-head > :nth-child(5),
+    .r-standings-row  > :nth-child(3),
+    .r-standings-row  > :nth-child(5) {
+      display: none !important;
+    }
+
+    /* Game */
+    .r-game-topbar { padding: 10px 14px !important; gap: 8px !important; }
+    .r-game-spacer { display: none !important; }
+    .r-game-mode { display: none !important; } /* free up space for turn pill */
+    .r-game-topbar > div:nth-child(2) { /* turn pill */
+      flex: 1 1 100%;
+      justify-content: center;
+      font-size: 12px;
+    }
+
+    .r-game-body {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 12px !important;
+      padding: 12px 10px 8px !important;
+    }
+    .r-player-left, .r-player-right { justify-self: stretch !important; width: 100%; order: 0; }
+    .r-player-left { order: 0; }
+    .r-board-wrap { order: 1; width: 100%; max-width: 100%; }
+    .r-player-right { order: 2; }
+
+    .r-player-card {
+      min-width: 0 !important;
+      width: 100% !important;
+      padding: 10px 12px !important;
+      gap: 8px !important;
+      flex-direction: row !important;
+      flex-wrap: wrap;
+      align-items: center !important;
+    }
+    .r-player-card > div:first-child { flex: 1 1 auto; }
+    .r-player-card > div:nth-child(2) { /* timer */
+      padding: 6px 10px !important; flex: 0 0 auto;
+    }
+    .r-player-card > div:nth-child(2) span:last-child { font-size: 15px !important; }
+    .r-player-card > div:nth-child(3) { /* captured row */
+      flex: 1 1 100%; padding-top: 4px;
+    }
+    .r-player-card > div:nth-child(3) > div:first-child { font-size: 10px !important; margin-bottom: 4px !important; }
+
+    .r-board { width: min(96vw, 480px) !important; padding: 8px !important; }
+    .r-files, .r-ranks { width: min(96vw, 480px) !important; padding: 0 8px !important; }
+    .r-ranks { width: auto !important; height: min(96vw, 480px) !important; padding: 8px 0 !important; }
+    .r-board-wrap { grid-template-columns: 14px auto 14px !important; grid-template-rows: 14px auto 14px !important; gap: 4px !important; }
+
+    .r-game-actions { padding: 12px 12px 20px !important; gap: 8px !important; }
+    .r-game-actions > button { padding: 9px 12px !important; font-size: 12.5px !important; }
+
+    /* Login */
+    .r-login-title { font-size: 56px !important; }
+
+    /* Page heading shrink */
+    .r-page-head h2 { font-size: 20px !important; }
+    .r-page-head > div:last-child { font-size: 11px; }
+
+    /* Game review */
+    .r-review-split { grid-template-columns: 1fr !important; height: auto !important; min-height: 0 !important; }
+  }
+
+  /* Modals: never wider than viewport */
+  @media (max-width: 520px) {
+    [role="dialog"], .page > div[onclick] > div { max-width: calc(100vw - 24px) !important; }
+  }
+  .r-modal { max-width: calc(100vw - 24px) !important; }
+  @media (max-width: 480px) {
+    .r-modal { padding: 22px !important; }
+    .r-modal > div:last-child > button { padding: 10px 14px !important; font-size: 13px !important; }
+  }
 </style>
 </head>
 <body>
@@ -51,9 +256,15 @@
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
+<script src="audio.jsx"></script>
 <script type="text/babel" src="login.jsx"></script>
+<script type="text/babel" src="profile-setup.jsx"></script>
 <script type="text/babel" src="dashboard.jsx"></script>
+<script type="text/babel" src="history.jsx"></script>
+<script type="text/babel" src="leaderboard.jsx"></script>
+<script type="text/babel" src="settings.jsx"></script>
 <script type="text/babel" src="game.jsx"></script>
+<script type="text/babel" src="game-review.jsx"></script>
 <script type="text/babel" src="app.jsx"></script>
 </body>
 </html>

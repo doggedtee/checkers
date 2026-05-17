@@ -1,9 +1,11 @@
-from fastapi import APIRouter, HTTPException, Header
+from fastapi import APIRouter, HTTPException, Header, FastAPI
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from game.game import Game
 from game.bot import choose_move
-from db.supabase import get_google_oauth_url, get_user, save_game, get_game_history
+from db.supabase import get_google_oauth_url, get_user, save_game, get_game_history, get_all_games_for_leaderboard
 
+app = FastAPI()
 router = APIRouter()
 
 games: dict[str, Game] = {}
@@ -15,6 +17,7 @@ class MoveRequest(BaseModel):
     to_row: int
     to_col: int
     user_id: str = None
+    region: str = None
 
 
 @router.post("/game/new")
@@ -65,6 +68,7 @@ def make_move(game_id: str, body: MoveRequest):
             player1_id=body.user_id or game_id,
             winner=winner,
             moves=game.move_history,
+            region=body.region,
         )
 
     return {
@@ -74,8 +78,38 @@ def make_move(game_id: str, body: MoveRequest):
     }
 
 
+class EndRequest(BaseModel):
+    winner: str  # "BEIGE", "BLACK", or "DRAW"
+    user_id: str = None
+    region: str = None
+
+
+@router.post("/game/{game_id}/end")
+def end_game(game_id: str, body: EndRequest):
+    game = _get_game(game_id)
+    save_game(
+        player1_id=body.user_id or game_id,
+        winner=body.winner,
+        moves=game.move_history,
+        region=body.region,
+    )
+    return {"ok": True, "winner": body.winner}
+
+
+@router.post("/game/{game_id}/undo")
+def undo_move(game_id: str, steps: int = 1):
+    game = _get_game(game_id)
+    ok = game.undo(steps=steps)
+    return {
+        "ok": ok,
+        "board": game.board,
+        "turn": game.turn,
+        "winner": game.get_winner(),
+    }
+
+
 @router.post("/game/{game_id}/bot-move")
-def bot_move(game_id: str, difficulty: int = 800, user_id: str = None):
+def bot_move(game_id: str, difficulty: int = 800, user_id: str = None, region: str = None):
     game = _get_game(game_id)
     if game.get_winner():
         return {"board": game.board, "turn": game.turn, "winner": game.get_winner(), "moves": []}
@@ -100,6 +134,7 @@ def bot_move(game_id: str, difficulty: int = 800, user_id: str = None):
             player1_id=user_id or game_id,
             winner=winner,
             moves=game.move_history,
+            region=region,
         )
 
     return {
@@ -114,6 +149,37 @@ def bot_move(game_id: str, difficulty: int = 800, user_id: str = None):
 def user_history(user_id: str):
     result = get_game_history(user_id)
     return {"games": result.data}
+
+
+@router.get("/leaderboard")
+def leaderboard(region: str = None):
+    result = get_all_games_for_leaderboard(region=region)
+    rows = result.data or []
+    agg: dict[str, dict] = {}
+    for row in rows:
+        pid = row.get("player1_id")
+        if not pid:
+            continue
+        entry = agg.setdefault(pid, {"player_id": pid, "wins": 0, "losses": 0, "total": 0})
+        entry["total"] += 1
+        if row.get("winner") == "BEIGE":
+            entry["wins"] += 1
+        else:
+            entry["losses"] += 1
+    players = []
+    for entry in agg.values():
+        rate = round((entry["wins"] / entry["total"]) * 100) if entry["total"] else 0
+        score = entry["wins"] * 25 + entry["total"] * 4
+        players.append({
+            "player_id": entry["player_id"],
+            "wins": entry["wins"],
+            "losses": entry["losses"],
+            "total": entry["total"],
+            "rate": rate,
+            "score": score,
+        })
+    players.sort(key=lambda p: p["score"], reverse=True)
+    return {"players": players}
 
 
 @router.get("/auth/login")
@@ -135,3 +201,7 @@ def _get_game(game_id: str) -> Game:
     if game_id not in games:
         raise HTTPException(status_code=404, detail="Game not found")
     return games[game_id]
+
+
+app.include_router(router)
+app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
