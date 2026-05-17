@@ -340,7 +340,7 @@ function LeaderboardView({ user }) {
   }
 
   useEffectLb(() => {
-    fetch("${window.API_BASE}/leaderboard")
+    fetch(`${window.API_BASE}/leaderboard`)
       .then(res => res.json())
       .then(data => {
         const mapped = mapEntries(data.players || []);
