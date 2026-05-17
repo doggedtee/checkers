@@ -29,6 +29,14 @@ async function apiMakeMove(pieceRow, pieceCol, toRow, toCol, userId = null) {
   return res.json();
 }
 
+async function apiBotMove(difficulty, userId = null) {
+  const params = new URLSearchParams({ difficulty: String(difficulty) });
+  if (userId) params.append("user_id", userId);
+  const res = await fetch(`${API}/game/${GAME_ID}/bot-move?${params.toString()}`, { method: 'POST' });
+  if (!res.ok) return null;
+  return res.json();
+}
+
 function Piece({ kind, selected, ghost }) {
   // kind: 1 player, 2 opp, 3 player-king, 4 opp-king
   const isPlayer = kind === 1 || kind === 3;
@@ -114,7 +122,7 @@ function PlayerCard({ side, name, rating, country, color, active, captured, time
   );
 }
 
-function GamePage({ user, onExit }) {
+function GamePage({ user, mode = "friend", difficulty = 800, onExit }) {
   const [board, setBoard] = useStateGame(Array.from({ length: 8 }, () => Array(8).fill(0)));
   const [turn, setTurn] = useStateGame(1);
   const [selected, setSelected] = useStateGame(null);
@@ -125,6 +133,8 @@ function GamePage({ user, onExit }) {
   const [playerTime, setPlayerTime] = useStateGame(587);
   const [oppTime, setOppTime] = useStateGame(612);
   const [winner, setWinner] = useStateGame(null);
+  const [botThinking, setBotThinking] = useStateGame(false);
+  const isBotMode = mode === "bot";
 
   useEffectGame(() => {
     apiNewGame().then(data => {
@@ -140,6 +150,22 @@ function GamePage({ user, onExit }) {
     }, 1000);
     return () => clearInterval(id);
   }, [turn]);
+
+  useEffectGame(() => {
+    if (!isBotMode || turn !== 2 || winner || botThinking) return;
+    setBotThinking(true);
+    const minDelay = new Promise(r => setTimeout(r, 350));
+    Promise.all([apiBotMove(difficulty, user?.id), minDelay]).then(([data]) => {
+      setBotThinking(false);
+      if (!data) return;
+      setBoard(data.board);
+      setTurn(data.turn);
+      if (data.winner) setWinner(data.winner);
+      if (data.moves && data.moves.length) {
+        setMoveHistory(h => [...h, ...data.moves.map(m => ({ from: m.from, to: m.to, capture: m.capture, player: 2 }))]);
+      }
+    });
+  }, [turn, isBotMode, winner]);
 
   const fmt = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
@@ -167,6 +193,7 @@ function GamePage({ user, onExit }) {
 
   async function clickSquare(r, c) {
     if (winner) return;
+    if (isBotMode && (turn === 2 || botThinking)) return;
 
     if (selected) {
       const move = moves.find(m => m.to[0] === r && m.to[1] === c);
@@ -268,7 +295,7 @@ function GamePage({ user, onExit }) {
           <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
             <span style={{ fontSize: 11, color: "var(--text-dim)", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 600 }}>Turn</span>
             <span style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.01em" }}>
-              {turn === 1 ? "Your move" : "Opponent thinking…"}
+              {turn === 1 ? "Your move" : (isBotMode ? (botThinking ? "Bot thinking…" : "Bot’s move") : "Opponent’s move")}
             </span>
           </div>
           <span style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--text-dim)", paddingLeft: 12, borderLeft: "1px solid var(--line-soft)" }}>
@@ -277,7 +304,7 @@ function GamePage({ user, onExit }) {
         </div>
 
         <div style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--text-dim)", letterSpacing: "0.08em" }}>
-          RANKED · 10 + 0
+          {isBotMode ? `VS BOT · ${difficulty}` : "LOCAL HOTSEAT"}
         </div>
       </div>
 
@@ -378,10 +405,10 @@ function GamePage({ user, onExit }) {
         <div style={{ justifySelf: "start" }}>
           <PlayerCard
             side="opp"
-            name="AI · Hard"
-            rating="1620"
-            country="Bot"
-            color="oklch(0.7 0.14 25)"
+            name={isBotMode ? `Bot · ${ratingTier(difficulty)}` : "Player 2"}
+            rating={isBotMode ? String(difficulty) : ""}
+            country={isBotMode ? "Bot" : "Local"}
+            color="oklch(0.55 0.14 25)"
             active={turn === 2}
             captured={Array(captured.playerLost).fill(0)}
             time={fmt(oppTime)}
@@ -475,6 +502,7 @@ function GamePage({ user, onExit }) {
                 setMoveHistory([]);
                 setPlayerTime(587);
                 setOppTime(612);
+                setBotThinking(false);
               }} style={{
                 padding: "12px 24px", borderRadius: 12,
                 background: "var(--accent)", color: "#14110d",
@@ -532,6 +560,14 @@ function ActionButton({ children, icon, onClick, kind }) {
       {children}
     </button>
   );
+}
+
+function ratingTier(v) {
+  if (v < 500) return "Beginner";
+  if (v < 1000) return "Casual";
+  if (v < 1500) return "Intermediate";
+  if (v < 1800) return "Expert";
+  return "Master";
 }
 
 window.GamePage = GamePage;

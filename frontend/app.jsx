@@ -10,6 +10,7 @@ function App() {
   const [page, setPage] = useStateApp("login");
   const [user, setUser] = useStateApp(null);
   const [loading, setLoading] = useStateApp(true);
+  const [gameConfig, setGameConfig] = useStateApp({ mode: "friend", difficulty: 800 });
 
   useEffectApp(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -46,8 +47,8 @@ function App() {
   );
 
   if (page === "login") return <LoginPage supabase={supabase} />;
-  if (page === "dashboard") return <DashboardPage user={user} onPlay={() => setPage("game")} onLogout={logout} />;
-  if (page === "game") return <GamePage user={user} onExit={() => setPage("dashboard")} />;
+  if (page === "dashboard") return <DashboardPage user={user} onPlay={(cfg) => { setGameConfig(cfg || { mode: "friend" }); setPage("game"); }} onLogout={logout} />;
+  if (page === "game") return <GamePage user={user} mode={gameConfig.mode} difficulty={gameConfig.difficulty} onExit={() => setPage("dashboard")} />;
   return null;
 }
 

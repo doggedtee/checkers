@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Header
 from pydantic import BaseModel
 from game.game import Game
+from game.bot import choose_move
 from db.supabase import get_google_oauth_url, get_user, save_game, get_game_history
 
 router = APIRouter()
@@ -70,6 +71,42 @@ def make_move(game_id: str, body: MoveRequest):
         "board": game.board,
         "turn": game.turn,
         "winner": winner
+    }
+
+
+@router.post("/game/{game_id}/bot-move")
+def bot_move(game_id: str, difficulty: int = 800, user_id: str = None):
+    game = _get_game(game_id)
+    if game.get_winner():
+        return {"board": game.board, "turn": game.turn, "winner": game.get_winner(), "moves": []}
+
+    moves_played = []
+    # keep going while it's the bot's turn (BLACK) — handles multi-capture chains
+    while game.turn == 2 and not game.get_winner():
+        result = choose_move(game, difficulty)
+        if not result:
+            break
+        piece, move = result
+        if not piece:
+            break
+        from_pos = [piece.row, piece.col]
+        game.make_move(piece, move)
+        to_pos = [move[0], move[1]]
+        moves_played.append({"from": from_pos, "to": to_pos, "capture": len(move) == 4})
+
+    winner = game.get_winner()
+    if winner:
+        save_game(
+            player1_id=user_id or game_id,
+            winner=winner,
+            moves=game.move_history,
+        )
+
+    return {
+        "board": game.board,
+        "turn": game.turn,
+        "winner": winner,
+        "moves": moves_played,
     }
 
 
