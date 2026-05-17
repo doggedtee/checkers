@@ -18,8 +18,8 @@ class MoveRequest(BaseModel):
     piece_col: int
     to_row: int
     to_col: int
-    user_id: str = None
-    region: str = None
+    user_id: str | None = None
+    region: str | None = None
 
 
 @router.post("/game/new")
@@ -90,8 +90,8 @@ def make_move(game_id: str, body: MoveRequest):
 
 class EndRequest(BaseModel):
     winner: str  # "BEIGE", "BLACK", or "DRAW"
-    user_id: str = None
-    region: str = None
+    user_id: str | None = None
+    region: str | None = None
 
 
 @router.post("/game/{game_id}/end")
