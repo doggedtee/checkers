@@ -269,14 +269,6 @@ const PRESETS = [
   { name: "Master", value: 2000 },
 ];
 
-function ratingLabel(v) {
-  if (v < 500) return "Beginner";
-  if (v < 1000) return "Casual";
-  if (v < 1500) return "Intermediate";
-  if (v < 1800) return "Expert";
-  return "Master";
-}
-
 function DifficultyModal({ difficulty, onChange, onClose, onStart }) {
   return (
     <div onClick={onClose} style={{
@@ -293,48 +285,24 @@ function DifficultyModal({ difficulty, onChange, onClose, onStart }) {
           <h3 style={{ margin: 0, fontSize: 20, fontWeight: 700, letterSpacing: "-0.01em" }}>Choose difficulty</h3>
           <span style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--text-dim)", letterSpacing: "0.08em" }}>VS BOT</span>
         </div>
-        <p style={{ margin: "0 0 22px", fontSize: 13, color: "var(--text-mute)" }}>
-          Pick a preset or scrub the slider to fine-tune the bot's rating.
+        <p style={{ margin: "0 0 20px", fontSize: 13, color: "var(--text-mute)" }}>
+          Pick a difficulty level to play against.
         </p>
 
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 18 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 24 }}>
           {PRESETS.map(p => {
             const active = difficulty === p.value;
             return (
               <button key={p.name} onClick={() => onChange(p.value)} style={{
-                padding: "7px 12px", borderRadius: 999,
+                padding: "10px 16px", borderRadius: 10,
                 background: active ? "var(--accent-soft)" : "var(--bg-elev-2)",
                 border: `1px solid ${active ? "var(--accent)" : "var(--line-soft)"}`,
                 color: active ? "var(--accent)" : "var(--text-mute)",
-                fontSize: 12.5, fontWeight: 600, letterSpacing: "-0.005em",
+                fontSize: 13, fontWeight: 600, letterSpacing: "-0.005em",
                 transition: "all 120ms ease",
               }}>{p.name}</button>
             );
           })}
-        </div>
-
-        <div style={{
-          background: "var(--bg-elev-2)", border: "1px solid var(--line-soft)",
-          borderRadius: 12, padding: "16px 18px", marginBottom: 22,
-        }}>
-          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 10 }}>
-            <span style={{ fontSize: 11.5, color: "var(--text-dim)", letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 600 }}>Rating</span>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-              <span style={{ fontFamily: "var(--mono)", fontSize: 22, fontWeight: 700, color: "var(--accent)" }}>{difficulty}</span>
-              <span style={{ fontSize: 12, color: "var(--text-mute)" }}>· {ratingLabel(difficulty)}</span>
-            </div>
-          </div>
-          <input
-            type="range" min="0" max="2000" step="50" value={difficulty}
-            onChange={(e) => onChange(parseInt(e.target.value, 10))}
-            style={{
-              width: "100%", accentColor: "oklch(0.7 0.1 65)",
-              cursor: "pointer",
-            }}
-          />
-          <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--mono)", fontSize: 10.5, color: "var(--text-dim)", marginTop: 4 }}>
-            <span>0</span><span>500</span><span>1000</span><span>1500</span><span>2000</span>
-          </div>
         </div>
 
         <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
